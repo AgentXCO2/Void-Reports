@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VOID GUARD</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #000;
+      color: white;
+    }
+
+    .center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    .box {
+      background: #0a0a0a;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #1a1a1a;
+      text-align: center;
+      width: 320px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #6a00ff;
+      color: white;
+    }
+
+    #result {
+      display: none;
+    }
+
+    .reportBox {
+      text-align: left;
+      background: #111;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+
+    a button {
+      margin-top: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="center">
+
+  <!-- INPUT -->
+  <div class="box" id="inputBox">
+    <h2>🛡️ VOID GUARD</h2>
+
+    <input id="url" placeholder="Suspicious website URL">
+
+    <select id="type">
+      <option>Phishing</option>
+      <option>Malware</option>
+      <option>Crypto Scam</option>
+      <option>Fake Store</option>
+      <option>Other</option>
+    </select>
+
+    <button onclick="generate()">Generate Report</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="box" id="result">
+    <h3>Report Ready</h3>
+
+    <div class="reportBox" id="reportText"></div>
+
+    <a id="msLink" target="_blank">
+      <button>Send to Microsoft Security</button>
+    </a>
+
+    <a id="googleLink" target="_blank">
+      <button>Send to Google Safe Browsing</button>
+    </a>
+
+    <button onclick="location.reload()">Report Another</button>
+  </div>
+
+</div>
+
+<script>
+  function generate() {
+    const url = document.getElementById("url").value;
+    const type = document.getElementById("type").value;
+
+    if (!url) {
+      alert("Please enter a URL");
+      return;
+    }
+
+    document.getElementById("inputBox").style.display = "none";
+    document.getElementById("result").style.display = "block";
+
+    const report =
+`⚠️ SECURITY REPORT
+
+Suspicious URL:
+${url}
+
+Threat Type:
+${type}
+
+Description:
+User reports this site as potentially malicious and unsafe.
+
+Recommended action:
+Investigate and take appropriate action.`;
+
+    document.getElementById("reportText").innerText = report;
+
+    // Official reporting pages (real redirect)
+    document.getElementById("msLink").href =
+      "https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site";
+
+    document.getElementById("googleLink").href =
+      "https://safebrowsing.google.com/safebrowsing/report_phish/";
+  }
+</script>
+
+</body>
+</html>
