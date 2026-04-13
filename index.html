@@ -1,149 +1,339 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>VOID GUARD</title>
+  <title>Void Guard</title>
 
   <style>
-    body {
+    * {
       margin: 0;
-      font-family: Arial;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
       background: #000;
       color: white;
+      font-family: Arial;
+      overflow: hidden;
     }
 
-    .center {
+    /* TABS */
+    .tabs {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      flex-direction: column;
+      background: #000;
+      border-bottom: 1px solid #111;
     }
 
-    .box {
-      background: #0a0a0a;
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid #1a1a1a;
+    .tab {
+      flex: 1;
+      padding: 12px;
       text-align: center;
-      width: 320px;
+      cursor: pointer;
+      background: #000;
+      border-right: 1px solid #111;
+      font-size: 13px;
+    }
+
+    .tab:hover { background: #0a0a0a; }
+
+    .active { background: #6a00ff; }
+
+    /* PAGES */
+    .page {
+      display: none;
+      padding: 18px;
+      height: calc(100vh - 50px);
+      overflow-y: auto;
+      background: #000;
     }
 
     input, select {
       width: 100%;
       padding: 10px;
-      margin: 8px 0;
+      margin-top: 10px;
       border-radius: 8px;
-      border: none;
+      border: 1px solid #111;
+      background: #000;
+      color: white;
+      outline: none;
     }
 
     button {
       width: 100%;
       padding: 10px;
-      margin-top: 8px;
-      border: none;
+      margin-top: 10px;
       border-radius: 8px;
-      cursor: pointer;
+      border: none;
       background: #6a00ff;
       color: white;
+      cursor: pointer;
     }
 
-    #result {
-      display: none;
-    }
+    button:hover { opacity: 0.9; }
 
-    .reportBox {
-      text-align: left;
-      background: #111;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      margin-top: 10px;
+    .result {
+      margin-top: 12px;
       white-space: pre-wrap;
+      font-size: 13px;
+      color: #ddd;
     }
 
-    a button {
-      margin-top: 8px;
+    .card {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #111;
+      border-radius: 10px;
+      background: #050505;
     }
+
+    .safe { color: limegreen; }
+    .mid { color: orange; }
+    .bad { color: red; }
   </style>
 </head>
 
 <body>
 
-<div class="center">
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="openTab(0)">AI Scan</div>
+  <div class="tab" onclick="openTab(1)">File Scan</div>
+  <div class="tab" onclick="openTab(2)">Report</div>
+  <div class="tab" onclick="openTab(3)">History</div>
+  <div class="tab" onclick="openTab(4)">Threat DB</div>
+</div>
 
-  <!-- INPUT -->
-  <div class="box" id="inputBox">
-    <h2>🛡️ VOID GUARD</h2>
+<!-- AI SCAN -->
+<div class="page" style="display:block;" id="tab0">
+  <h2>🧠 AI URL Scanner</h2>
 
-    <input id="url" placeholder="Suspicious website URL">
+  <input id="urlInput" placeholder="Paste URL">
+  <button onclick="scanURL()">Scan</button>
 
-    <select id="type">
-      <option>Phishing</option>
-      <option>Malware</option>
-      <option>Crypto Scam</option>
-      <option>Fake Store</option>
-      <option>Other</option>
-    </select>
+  <div class="result" id="urlResult"></div>
 
-    <button onclick="generate()">Generate Report</button>
+  <div class="card" id="aiExplain">
+    🧠 AI Explanation will appear here after scan
   </div>
+</div>
 
-  <!-- RESULT -->
-  <div class="box" id="result">
-    <h3>Report Ready</h3>
+<!-- FILE SCAN -->
+<div class="page" id="tab1">
+  <h2>📁 File Scanner</h2>
 
-    <div class="reportBox" id="reportText"></div>
+  <input type="file" id="fileInput">
+  <button onclick="scanFile()">Scan File</button>
 
-    <a id="msLink" target="_blank">
-      <button>Send to Microsoft Security</button>
-    </a>
+  <div id="fileResult"></div>
+</div>
 
-    <a id="googleLink" target="_blank">
-      <button>Send to Google Safe Browsing</button>
-    </a>
+<!-- REPORT -->
+<div class="page" id="tab2">
+  <h2>🛡️ Report Site</h2>
 
-    <button onclick="location.reload()">Report Another</button>
-  </div>
+  <input id="reportUrl" placeholder="Suspicious URL">
 
+  <select id="reportType">
+    <option>Phishing</option>
+    <option>Malware</option>
+    <option>Crypto Scam</option>
+    <option>Fake Store</option>
+    <option>Other</option>
+  </select>
+
+  <button onclick="generateReport()">Generate Report</button>
+
+  <div class="result" id="reportOutput"></div>
+
+  <button onclick="sendMicrosoft()">Report to Microsoft</button>
+  <button onclick="sendGoogle()">Report to Google</button>
+</div>
+
+<!-- HISTORY -->
+<div class="page" id="tab3">
+  <h2>📜 Scan History</h2>
+  <div id="history"></div>
+</div>
+
+<!-- THREAT DB -->
+<div class="page" id="tab4">
+  <h2>🌍 Threat Database</h2>
+  <div id="threatDB"></div>
 </div>
 
 <script>
-  function generate() {
-    const url = document.getElementById("url").value;
-    const type = document.getElementById("type").value;
 
-    if (!url) {
-      alert("Please enter a URL");
-      return;
-    }
+let reportText = "";
 
-    document.getElementById("inputBox").style.display = "none";
-    document.getElementById("result").style.display = "block";
+/* ---------------- TABS ---------------- */
+function openTab(i) {
+  const pages = document.querySelectorAll(".page");
+  const tabs = document.querySelectorAll(".tab");
 
-    const report =
-`⚠️ SECURITY REPORT
+  pages.forEach(p => p.style.display = "none");
+  tabs.forEach(t => t.classList.remove("active"));
 
-Suspicious URL:
-${url}
+  pages[i].style.display = "block";
+  tabs[i].classList.add("active");
 
-Threat Type:
-${type}
+  if (i === 3) loadHistory();
+  if (i === 4) loadThreatDB();
+}
 
-Description:
-User reports this site as potentially malicious and unsafe.
+/* ---------------- AI SCAN ---------------- */
+function scanURL() {
+  const url = document.getElementById("urlInput").value;
+  if (!url) return alert("Enter URL");
 
-Recommended action:
-Investigate and take appropriate action.`;
+  let score = 0;
+  let reasons = [];
 
-    document.getElementById("reportText").innerText = report;
+  if (url.includes("login")) { score += 30; reasons.push("Phishing pattern"); }
+  if (url.includes("verify")) { score += 25; reasons.push("Fake verification"); }
+  if (!url.includes("https")) { score += 20; reasons.push("No HTTPS"); }
 
-    // Official reporting pages (real redirect)
-    document.getElementById("msLink").href =
-      "https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site";
+  let level = "CLEAN";
+  let color = "safe";
 
-    document.getElementById("googleLink").href =
-      "https://safebrowsing.google.com/safebrowsing/report_phish/";
+  if (score > 40) { level = "SUSPICIOUS"; color = "mid"; }
+  if (score > 70) { level = "DANGEROUS"; color = "bad"; }
+
+  saveHistory({
+    type: "url",
+    url,
+    score,
+    level,
+    reasons
+  });
+
+  document.getElementById("urlResult").innerHTML =
+`Risk: <span class="${color}">${level}</span>
+Score: ${score}/100`;
+
+  generateAIExplanation(level, reasons);
+}
+
+/* ---------------- AI EXPLANATION ---------------- */
+function generateAIExplanation(level, reasons) {
+  let text = "";
+
+  if (level === "CLEAN") {
+    text = "This URL appears safe with no strong malicious indicators.";
+  } else if (level === "SUSPICIOUS") {
+    text = "This URL shows patterns commonly used in phishing or fake login pages.";
+  } else {
+    text = "High-risk indicators detected. Avoid interacting with this site.";
   }
+
+  if (reasons.length) {
+    text += "\n\nSignals:\n- " + reasons.join("\n- ");
+  }
+
+  document.getElementById("aiExplain").innerText = "🧠 AI Explanation:\n\n" + text;
+}
+
+/* ---------------- FILE SCAN ---------------- */
+function scanFile() {
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) return alert("Select file");
+
+  const name = file.name.toLowerCase();
+
+  let score = 0;
+  let flags = [];
+
+  if (name.includes("hack")) { score += 35; flags.push("Suspicious keyword"); }
+  if (name.includes("crack")) { score += 40; flags.push("Crack tool pattern"); }
+  if (name.includes("inject")) { score += 45; flags.push("Injection pattern"); }
+
+  let status = "✔ CLEAN";
+  if (score > 40) status = "❗ FLAGGED";
+
+  const result = {
+    type: "file",
+    file: file.name,
+    score,
+    status,
+    flags
+  };
+
+  saveHistory(result);
+
+  document.getElementById("fileResult").innerHTML =
+`File: ${file.name}
+Status: ${status}
+Score: ${score}/100
+
+Flags:
+${flags.length ? flags.map(f => "• " + f).join("\n") : "• None"}`;
+}
+
+/* ---------------- HISTORY ---------------- */
+function saveHistory(data) {
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+  history.unshift(data);
+  localStorage.setItem("history", JSON.stringify(history));
+}
+
+function loadHistory() {
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+
+  document.getElementById("history").innerHTML =
+    history.map(h => `
+      <div class="card">
+        ${h.type === "url" ? "🌐 " + h.url : "📁 " + h.file}<br>
+        Score: ${h.score}<br>
+        Level: ${h.level || h.status}
+      </div>
+    `).join("") || "No history yet";
+}
+
+/* ---------------- THREAT DB ---------------- */
+function generateReport() {
+  const url = document.getElementById("reportUrl").value;
+  const type = document.getElementById("reportType").value;
+
+  if (!url) return alert("Enter URL");
+
+  reportText =
+`SCAM REPORT
+URL: ${url}
+TYPE: ${type}`;
+
+  document.getElementById("reportOutput").innerText = reportText;
+
+  let db = JSON.parse(localStorage.getItem("threatDB") || "[]");
+  db.push({ url, type });
+  localStorage.setItem("threatDB", JSON.stringify(db));
+}
+
+function loadThreatDB() {
+  let db = JSON.parse(localStorage.getItem("threatDB") || "[]");
+
+  document.getElementById("threatDB").innerHTML =
+    db.map(d => `
+      <div class="card">
+        🌍 ${d.url}<br>
+        Type: ${d.type}
+      </div>
+    `).join("") || "No threats reported yet";
+}
+
+/* ---------------- REPORTING ---------------- */
+function sendMicrosoft() {
+  if (!reportText) return alert("Generate report first");
+  navigator.clipboard.writeText(reportText);
+  window.open("https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site", "_blank");
+}
+
+function sendGoogle() {
+  if (!reportText) return alert("Generate report first");
+  navigator.clipboard.writeText(reportText);
+  window.open("https://safebrowsing.google.com/safebrowsing/report_phish/", "_blank");
+}
+
 </script>
 
 </body>
